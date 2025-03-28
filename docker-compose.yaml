@@ -1,0 +1,45 @@
+version: "3"
+
+services:
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  mysql:
+    image: mysql
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: "go-college"
+      MYSQL_DATABASE: "go_college_api"
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+      - ./db-data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: "go-college"
+    ports:
+      - "127.0.0.1:4000:80"
+    links:
+      - mysql
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    environment:
+      SWAGGER_JSON: /api/api-document.yaml
+    volumes:
+      - ./api-document.yaml:/api/api-document.yaml:ro
+    ports:
+      - "127.0.0.1:3000:8080"
+
+volumes:
+  db-data:
+    driver: local
